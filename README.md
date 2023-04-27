@@ -20,5 +20,13 @@ list-cache: List the build cache size
 
 remove-cache: Remove build cache
 
+Examples:
+
+	python docker-dangling.py list-images   # To list dangling images
+	python docker-dangling.py delete-images # To delete dangling images
+	python docker-dangling.py list-cache     # To list build cache size
+	python docker-dangling.py remove-cache   # To remove build cache
+
+
 
 The script will connect to your local Docker daemon, perform the specified action, and print the relevant information. If no dangling images or build cache are found, it will print a message indicating that.
