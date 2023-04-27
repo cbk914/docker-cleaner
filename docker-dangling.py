@@ -3,6 +3,8 @@
 # Author: David Espejo (Fortytwo Security)
 import docker
 import argparse
+import subprocess
+import re
 
 def list_dangling_images(client):
     images = client.images.list(filters={"dangling": True})
@@ -32,10 +34,28 @@ def list_build_cache(client):
     else:
         print(f"Build cache size: {build_cache} bytes")
 
-def remove_build_cache(client):
-    response = client.images.prune(filters={"dangling": False})
-    build_cache_reclaimed = response["SpaceReclaimed"]
-    print(f"Reclaimed {build_cache_reclaimed} bytes from build cache")
+def remove_build_cache():
+    try:
+        # Get build cache size before pruning
+        before_prune = subprocess.run(["docker", "system", "df"],
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        before_prune_size = int(re.search(r'Build Cache\s+(\d+)', before_prune.stdout).group(1))
+
+        # Prune build cache
+        subprocess.run(["docker", "builder", "prune", "-f"],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+
+        # Get build cache size after pruning
+        after_prune = subprocess.run(["docker", "system", "df"],
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        after_prune_size = int(re.search(r'Build Cache\s+(\d+)', after_prune.stdout).group(1))
+
+        # Calculate reclaimed space
+        reclaimed_space = before_prune_size - after_prune_size
+        print(f"Reclaimed {reclaimed_space} bytes from build cache")
+
+    except Exception as e:
+        print(f"Error removing build cache: {e}")
 
 def main():
     parser = argparse.ArgumentParser(description="Manage dangling Docker images and build cache.")
