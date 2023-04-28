@@ -73,6 +73,8 @@ def main():
         list_build_cache(client)
     elif args.action == "remove-cache":
         remove_build_cache(client)
+# If error TypeError: remove_build_cache() takes 0 positional arguments but 1 was given, comment upper line and uncomment following line
+#        remove_build_cache()        
         
 if __name__ == "__main__":
     main()        
